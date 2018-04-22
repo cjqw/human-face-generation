@@ -6,6 +6,7 @@ from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
+from keras.initializers import RandomNormal
 from keras.optimizers import Adam
 import keras.backend as K
 
@@ -40,33 +41,40 @@ def build_generator():
 def build_discriminator():
     img_shape = get_config("img-shape") or (64,64,3)
     feature_shape = get_config("feature-shape") or (40,)
+    feature_count = get_config("feature-count") or 40
     dropout_prob = 0.4
     kernel_init = "glorot_uniform"
 
     model = Sequential()
 
-    model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
+    model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
+
     model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
     model.add(ZeroPadding2D(padding=((0,1),(0,1))))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
+
     model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
+
     model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(1024, kernel_initializer = RandomNormal(mean = 0.0, stddev = 0.02, seed = None)))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(BatchNormalization())
+    model.add(Dense(feature_count,activation='softmax'))
 
     model.summary()
 
-    img = Input(shape=self.img_shape)
+    img = Input(shape=img_shape)
     validity = model(img)
 
     return Model(img, validity)
