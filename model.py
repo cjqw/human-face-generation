@@ -4,7 +4,7 @@ from config import get_config
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import Subtract
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import PReLU
+from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.initializers import RandomNormal
@@ -19,18 +19,18 @@ def build_generator():
     model = Sequential()
     model.add(Dense(128*16*16,activation="relu",input_shape=(input_dim,)))
     model.add(Reshape((16,16,128)))
-
     model.add(BatchNormalization(momentum=0.8))
+
     model.add(UpSampling2D())
     model.add(Conv2D(128, kernel_size=3, padding="same"))
-    model.add(PReLU(0.2))
-
+    model.add(Activation("relu"))
     model.add(BatchNormalization(momentum=0.8))
+
     model.add(UpSampling2D())
     model.add(Conv2D(64, kernel_size=3, padding="same"))
-    model.add(PReLU(0.2))
-
+    model.add(Activation("relu"))
     model.add(BatchNormalization(momentum=0.8))
+
     model.add(Conv2D(3, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
     model.summary()
@@ -53,7 +53,7 @@ def build_discriminator():
     model = Sequential()
 
     model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
-    model.add(PReLU(0.2))
+    model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
@@ -63,16 +63,16 @@ def build_discriminator():
 
     model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
-    model.add(PReLU(0.2))
+    model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
-    model.add(PReLU(0.2))
+    model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Dense(1,activation='linear'))
+    model.add(Dense(1,activation='sigmoid'))
 
     model.summary()
 

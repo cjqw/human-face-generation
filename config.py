@@ -7,6 +7,7 @@ config = {"data-path":"./data/celeba_64.hdf5",
           "feature-dim": 40,
           "noise-dim": 20,
           "train":True,
+          "GPU-number":"3",
           "env":"CPU"}
 
 def get_config(para,default = None):

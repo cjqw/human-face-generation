@@ -18,7 +18,7 @@ if get_config("env") == "GPU":
     from keras.backend.tensorflow_backend import set_session
     import os
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    os.environ['CUDA_VISIBLE_DEVICES'] = get_config("GPU-number")
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.5
     config.gpu_options.allow_growth = True
