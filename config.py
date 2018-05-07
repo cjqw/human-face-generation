@@ -1,28 +1,17 @@
-config = {"data-path":"./data/lfw/",
-          "epochs":1,
-          "batchs":100,
-          "train-datasets":300,
+config = {"data-path":"./data/celeba_64.hdf5",
+          "epochs":1001,
+          "batchs":200,
+          "train-datasets":5000,
           "model-path":"./model/",
           "img-shape":(64,64,3),
-          "feature-shape":(40,),
-          "feature-number":40,
-          "train":True}
+          "feature-dim": 40,
+          "noise-dim": 20,
+          "train":True,
+          "env":"CPU"}
 
-def get_config(para):
+def get_config(para,default = None):
     try:
         value = config[para]
     except:
-        value = None
+        value = default
     return value
-
-# tensorflow configuration
-import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
-import os
-
-# os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.5
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
-set_session(sess)

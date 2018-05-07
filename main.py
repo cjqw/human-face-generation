@@ -1,15 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from fuel.datasets import CelebA
+from fuel.datasets.hdf5 import H5PYDataset
 from config import get_config
-from model import build_generator,build_discriminator
+from model import build_net
 from keras.models import Model
 from keras.layers import Input
-import keras
-import cv2
 
+import keras
 import numpy as np
+
+from utils import *
+
+if get_config("env") == "GPU":
+    # tensorflow setting
+    import tensorflow as tf
+    from keras.backend.tensorflow_backend import set_session
+    import os
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = 0.5
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
+    set_session(sess)
+
 
 def convert_rgb_img(img):
     shape = img[0].shape
@@ -29,53 +44,75 @@ def get_batch(train_set,handle,l):
     imgs = np.moveaxis(imgs,1,3)
     return imgs,features
 
-def get_dis_train_pair(imgs,features):
-    """Get train pair for discriminator."""
-    batch = get_config("batchs")
-    x,y = imgs,features
-    return x,y
+def convert_to_img(img):
+    shape = img.shape
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            img[i][j] = img[i][j][::-1]
+    return img
 
-def get_gen_train_pair():
-    x = gen_noise(get_config("batchs"),get_config("feature-number"))
-    return x,x
+def save_result(epoch,generator):
+    feature_dim = get_config("feature-dim") or 40
+    noise_dim = get_config("noise-dim") or 10
+    input_dim = feature_dim + noise_dim
+    shape = get_config("img-shape")
+
+    r,c = 5,5
+    noise = np.random.normal(0,1,(r*c, input_dim))
+    gen_imgs = generator.predict(noise)
+    gen_imgs = [convert_to_img(img) for img in gen_imgs]
+
+    figure = np.zeros(shape * np.array([r,c,1]))
+    for i in range(r):
+        for j in range(c):
+            figure[i*shape[0]:i*shape[0]+shape[0],j*shape[1]:j*shape[1]+shape[1],:] = gen_imgs[i*r+j]
+
+    path = "img/epoch_%d" % epoch
+    save_img(path,figure)
+    save_np_array(path,figure)
+
 
 def train_model():
-    train_set = CelebA('64',which_sets=('train',))
-    print(train_set.num_examples)
+    data_path = get_config("data-path")
+    batchs = get_config("batchs")
+    half_batch = batchs // 2
+    n_batchs = (get_config("train-datasets") or train_set.num_examples) // batchs
+    feature_dim = get_config("feature-dim") or 40
+    noise_dim = get_config("noise-dim") or 10
+    input_dim = feature_dim + noise_dim
+
+    train_set = H5PYDataset(data_path,which_sets=('train',))
     handle = train_set.open()
 
-    n_batchs = (get_config("train-datasets") or train_set.num_examples) // get_config("batchs")
-    generator = build_generator()
-    discriminator = build_discriminator()
-    discriminator.compile(loss='categorical_crossentropy', optimizer='RMSprop')
-    generator.compile(loss='binary_crossentropy', optimizer='RMSprop')
-
-
-    gan_input = Input(shape=get_config("feature-shape"))
-    H = generator(gan_input)
-    gan_output = discriminator(H)
-    gan = Model(gan_input,gan_output)
-    gan.compile(loss='categorical_crossentropy', optimizer='RMSprop')
+    generator,discriminator,gan = build_net(input_dim)
+    save_result(0,generator)
 
     for i in range(get_config("epochs")):
         for j in range(n_batchs):
-            imgs,features = get_batch(train_set,handle,j*get_config("batchs"))
-            # x = imgs[0]
-            # for ii in range(64):
-            #     for jj in range(64):
-            #         x[ii][jj] = x[ii][jj][::-1]
-            # cv2.imshow("img",x)
-            # cv2.waitKey(0)
+            imgs,features = get_batch(train_set,handle,j * batchs)
+
+            noise = np.random.normal(0,1,(half_batch,input_dim))
+            gen_imgs = generator.predict(noise)
+
+            real_imgs = imgs[np.random.randint(0,imgs.shape[0],half_batch)]
 
             # train Discriminator
-            discriminator.trainable = True
-            X,Y = get_dis_train_pair(imgs,features)
-            d_loss = discriminator.train_on_batch(X,Y)
+            d_loss_real = discriminator.train_on_batch(real_imgs,np.ones((half_batch,1)))
+            d_loss_fake = discriminator.train_on_batch(gen_imgs,np.zeros((half_batch,1)))
+            d_loss = np.add(d_loss_real,d_loss_fake) * 0.5
+
 
             # train Generator
-            discriminator.trainable = False
-            X,Y = get_gen_train_pair()
-            g_loss = gan.train_on_batch(X,Y)
+            noise = np.random.normal(0,1,(batchs,input_dim))
+            g_loss = gan.train_on_batch(noise,np.ones((batchs,1)))
+
+            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (i, d_loss[0], 100*d_loss[1], g_loss))
+
+            if get_config("env") == "CPU":
+                return
+
+            if i % 100 == 0:
+                save_result(i,generator)
 
     # save models
 
