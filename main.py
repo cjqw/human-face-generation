@@ -69,7 +69,7 @@ def save_result(epoch,generator):
 
     path = "img/epoch_%d" % epoch
     save_img(path,figure)
-    save_np_array(path,figure)
+    # save_np_array(path,figure)
 
 
 def train_model():
