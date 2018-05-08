@@ -4,8 +4,8 @@ from config import get_config
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import Subtract
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU,PReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
+from keras.layers.advanced_activations import LeakyReLU
+from keras.layers.convolutional import UpSampling2D, Conv2D, MaxPooling2D
 from keras.models import Sequential, Model
 from keras.initializers import RandomNormal
 from keras.optimizers import Adam
@@ -53,22 +53,23 @@ def build_discriminator():
     model = Sequential()
 
     model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
-    model.add(PReLU())
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(MaxPooling2D(pool_size=(2,2)))
     model.add(Dropout(0.25))
 
     model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
     model.add(ZeroPadding2D(padding=((0,1),(0,1))))
-    model.add(PReLU())
+    model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
-    model.add(PReLU())
+    model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
-    model.add(PReLU())
+    model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
