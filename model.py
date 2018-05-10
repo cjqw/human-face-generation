@@ -2,7 +2,7 @@
 
 from config import get_config
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
-from keras.layers import Subtract
+from keras.layers.merge import Concatenate
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D, MaxPooling2D
@@ -40,7 +40,6 @@ def build_generator():
 
     return Model(noise, img)
 
-
 def build_discriminator():
     img_shape = get_config("img-shape") or (64,64,3)
     feature_dim = get_config("feature-dim") or 40
@@ -73,26 +72,34 @@ def build_discriminator():
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Dense(1,activation='sigmoid'))
+    model.add(Dense(input_dim,activation='sigmoid'))
 
     model.summary()
 
-    img = Input(shape=img_shape)
-    validity = model(img)
 
-    return Model(img, validity)
+    img = Input(shape=img_shape)
+    feature_i = Input(shape=(input_dim,))
+    feature_p = Model(img, model(img))(img)
+
+    discriminator = Concatenate()([feature_i,feature_p])
+    discriminator = Dense(1,activation='sigmoid')(discriminator)
+
+    return Model([feature_i,img],discriminator)
+
+    # return Model(img,model(img))
+
 
 def build_net(input_dim):
     optimizer = Adam(0.0002, 0.5)
     generator = build_generator()
     discriminator = build_discriminator()
-    # generator.compile(loss='binary_crossentropy', optimizer='RMSprop')
-    discriminator.compile(loss='binary_crossentropy', optimizer = optimizer, metrics = ['accuracy'])
 
     gan_input = Input(shape=(input_dim,))
     img = generator(gan_input)
+    gan_output = discriminator([gan_input,img])
     discriminator.trainable = False
-    gan_output = discriminator(img)
+    discriminator.compile(loss='binary_crossentropy', optimizer = optimizer, metrics = ['accuracy'])
+
     gan = Model(gan_input,gan_output)
     gan.compile(loss='binary_crossentropy', optimizer=optimizer)
     return generator,discriminator,gan

@@ -94,11 +94,14 @@ def train_model():
             noise = np.random.normal(0,1,(half_batch,input_dim))
             gen_imgs = generator.predict(noise)
 
-            real_imgs = imgs[np.random.randint(0,imgs.shape[0],half_batch)]
+            idx = np.random.randint(0,imgs.shape[0],half_batch)
+            real_imgs = imgs[idx]
+            real_noise = np.random.normal(0,1,(half_batch,noise_dim))
+            real_features = np.concatenate((features[idx],real_noise),axis=1)
 
             # train Discriminator
-            d_loss_real = discriminator.train_on_batch(real_imgs,np.ones((half_batch,1)))
-            d_loss_fake = discriminator.train_on_batch(gen_imgs,np.zeros((half_batch,1)))
+            d_loss_real = discriminator.train_on_batch([real_features,real_imgs],np.ones((half_batch,1)))
+            d_loss_fake = discriminator.train_on_batch([noise,gen_imgs],np.zeros((half_batch,1)))
             d_loss = np.add(d_loss_real,d_loss_fake) * 0.5
 
 
