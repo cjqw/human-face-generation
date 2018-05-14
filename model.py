@@ -72,7 +72,8 @@ def build_discriminator():
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Dense(input_dim,activation='sigmoid'))
+    # model.add(Dense(input_dim,activation='sigmoid'))
+    model.add(Dense(1,activation='sigmoid'))
 
     model.summary()
 
@@ -84,9 +85,9 @@ def build_discriminator():
     discriminator = Concatenate()([feature_i,feature_p])
     discriminator = Dense(1,activation='sigmoid')(discriminator)
 
-    return Model([feature_i,img],discriminator)
+    # return Model([feature_i,img],discriminator)
 
-    # return Model(img,model(img))
+    return Model(img,model(img))
 
 
 def build_net(input_dim):
@@ -96,7 +97,8 @@ def build_net(input_dim):
 
     gan_input = Input(shape=(input_dim,))
     img = generator(gan_input)
-    gan_output = discriminator([gan_input,img])
+    # gan_output = discriminator([gan_input,img])
+    gan_output = discriminator(img)
     discriminator.trainable = False
     discriminator.compile(loss='binary_crossentropy', optimizer = optimizer, metrics = ['accuracy'])
 

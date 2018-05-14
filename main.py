@@ -19,6 +19,8 @@ if get_config("env") == "GPU":
     import os
 
     os.environ['CUDA_VISIBLE_DEVICES'] = get_config("GPU-number")
+    os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.5
     config.gpu_options.allow_growth = True
@@ -58,8 +60,12 @@ def save_result(epoch,generator):
     shape = get_config("img-shape")
 
     r,c = 5,5
-    noise = np.random.normal(0,1,(r*c, input_dim))
-    gen_imgs = generator.predict(noise)
+    feature = np.random.normal(0,1,(1, feature_dim))
+    feature = np.array(feature,r*c,axis=0)
+    noise = np.random.normal(0,1,(r*c, noise_dim))
+    real_features = np.concatenate((feature,noise),axis=1)
+
+    gen_imgs = generator.predict(real_features)
     gen_imgs = [convert_to_img(img) for img in gen_imgs]
 
     figure = np.zeros(shape * np.array([r,c,1]))
@@ -67,10 +73,10 @@ def save_result(epoch,generator):
         for j in range(c):
             figure[i*shape[0]:i*shape[0]+shape[0],j*shape[1]:j*shape[1]+shape[1],:] = gen_imgs[i*r+j]
 
-    path = "img/epoch_%d" % epoch
-    save_img(path,figure)
-    # save_np_array(path,figure)
-
+    img_path = "img/epoch_%d" % epoch
+    model_path = "model/epoch_%d" % epoch
+    save_img(img_path,figure)
+    save_model(model_path,generator)
 
 def train_model():
     data_path = get_config("data-path")
@@ -100,8 +106,11 @@ def train_model():
             real_features = np.concatenate((features[idx],real_noise),axis=1)
 
             # train Discriminator
-            d_loss_real = discriminator.train_on_batch([real_features,real_imgs],np.ones((half_batch,1)))
-            d_loss_fake = discriminator.train_on_batch([noise,gen_imgs],np.zeros((half_batch,1)))
+            # d_loss_real = discriminator.train_on_batch([real_features,real_imgs],np.ones((half_batch,1)))
+            # d_loss_fake = discriminator.train_on_batch([noise,gen_imgs],np.zeros((half_batch,1)))
+            d_loss_real = discriminator.train_on_batch(real_imgs,np.ones((half_batch,1)))
+            d_loss_fake = discriminator.train_on_batch(gen_imgs,np.zeros((half_batch,1)))
+
             d_loss = np.add(d_loss_real,d_loss_fake) * 0.5
 
 
@@ -114,7 +123,7 @@ def train_model():
             if get_config("env") == "CPU":
                 return
 
-            if i % 100 == 0:
+            if i % 10 == 0:
                 save_result(i,generator)
 
     # save models
