@@ -2,7 +2,7 @@
 
 from config import get_config
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
-from keras.layers import Subtract
+from keras.layers import Dot,Concatenate
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D, MaxPooling2D
@@ -35,10 +35,12 @@ def build_generator():
     model.add(Activation("tanh"))
     model.summary()
 
-    noise = Input(shape=(input_dim,))
-    img = model(noise)
+    noise = Input(shape=(noise_dim,))
+    feature = Input(shape=(feature_dim,))
+    input_v = Concatenate()([noise,feature])
+    img = model(input_v)
 
-    return Model(noise, img)
+    return Model([noise,feature], img)
 
 
 def build_discriminator():
@@ -73,26 +75,39 @@ def build_discriminator():
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Dense(1,activation='sigmoid'))
-
     model.summary()
 
     img = Input(shape=img_shape)
-    validity = model(img)
+    model = model(img)
 
-    return Model(img, validity)
+    validity = Dense(1,activation='sigmoid')(model)
+
+    feature_i = Input(shape=(feature_dim,))
+    feature_p = Dense(feature_dim,activation='sigmoid')(model)
+
+    return Model([feature_i,img],[validity,feature_p])
 
 def build_net(input_dim):
+    feature_dim = get_config("feature-dim") or 40
+    noise_dim = get_config("noise-dim") or 10
+    input_dim = feature_dim + noise_dim
+
     optimizer = Adam(0.0002, 0.5)
     generator = build_generator()
     discriminator = build_discriminator()
-    # generator.compile(loss='binary_crossentropy', optimizer='RMSprop')
-    discriminator.compile(loss='binary_crossentropy', optimizer = optimizer, metrics = ['accuracy'])
+    discriminator.compile(loss=['binary_crossentropy',
+                                'binary_crossentropy'],
+                          optimizer = optimizer,
+                          metrics = ['accuracy'])
 
-    gan_input = Input(shape=(input_dim,))
-    img = generator(gan_input)
+    noise = Input(shape=(noise_dim,))
+    feature = Input(shape=(feature_dim,))
+
+    img = generator([noise,feature])
     discriminator.trainable = False
-    gan_output = discriminator(img)
-    gan = Model(gan_input,gan_output)
-    gan.compile(loss='binary_crossentropy', optimizer=optimizer)
+    gan_output = discriminator([feature,img])
+    gan = Model([noise,feature],gan_output)
+    gan.compile(loss=['binary_crossentropy',
+                      'binary_crossentropy'],
+                optimizer=optimizer)
     return generator,discriminator,gan

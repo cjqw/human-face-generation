@@ -34,32 +34,17 @@ def convert_rgb_img(img):
     x[:,:,2] = img[0,:,:]
     return x
 
-def gen_noise(n,shape):
-    return np.random.randint(2,size=(n,shape))
-
-def get_batch(train_set,handle,l):
-    r = l + get_config("batchs")
-    imgs,features = train_set.get_data(handle,slice(l,r))
-    imgs = imgs / 255
-    imgs = np.moveaxis(imgs,1,3)
-    return imgs,features
-
-def convert_to_img(img):
-    shape = img.shape
-    for i in range(shape[0]):
-        for j in range(shape[1]):
-            img[i][j] = img[i][j][::-1]
-    return img
-
-def save_result(epoch,generator):
+def save_result(epoch,generator,feature):
     feature_dim = get_config("feature-dim") or 40
     noise_dim = get_config("noise-dim") or 10
     input_dim = feature_dim + noise_dim
     shape = get_config("img-shape")
 
     r,c = 5,5
-    noise = np.random.normal(0,1,(r*c, input_dim))
-    gen_imgs = generator.predict(noise)
+    feature = np.repeat(feature,r*c,axis=0)
+    noise =  np.random.normal(0,1,(r*c, noise_dim))
+
+    gen_imgs = generator.predict([noise,feature])
     gen_imgs = [convert_to_img(img) for img in gen_imgs]
 
     figure = np.zeros(shape * np.array([r,c,1]))
@@ -76,6 +61,7 @@ def train_model():
     data_path = get_config("data-path")
     batchs = get_config("batchs")
     half_batch = batchs // 2
+    quarter_batch = half_batch // 2
     n_batchs = (get_config("train-datasets") or train_set.num_examples) // batchs
     feature_dim = get_config("feature-dim") or 40
     noise_dim = get_config("noise-dim") or 10
@@ -85,34 +71,40 @@ def train_model():
     handle = train_set.open()
 
     generator,discriminator,gan = build_net(input_dim)
-    save_result(0,generator)
+    save_result(0,generator,np.zeros(shape=(1,feature_dim)))
 
     for i in range(get_config("epochs")):
         for j in range(n_batchs):
             imgs,features = get_batch(train_set,handle,j * batchs)
 
-            noise = np.random.normal(0,1,(half_batch,input_dim))
-            gen_imgs = generator.predict(noise)
+            idx = np.random.randint(0,imgs.shape[0],half_batch)
+            real_imgs = imgs[idx]
+            real_features = features[idx]
 
-            real_imgs = imgs[np.random.randint(0,imgs.shape[0],half_batch)]
+            gen_features = features[idx[:quarter_batch]]# np.random.normal(0,1,(batchs,feature_dim))
+            noise = np.random.normal(0,1,(quarter_batch,noise_dim))
+            gen_imgs = generator.predict([noise,gen_features])
 
-            # train Discriminator
-            d_loss_real = discriminator.train_on_batch(real_imgs,np.ones((half_batch,1)))
-            d_loss_fake = discriminator.train_on_batch(gen_imgs,np.zeros((half_batch,1)))
-            d_loss = np.add(d_loss_real,d_loss_fake) * 0.5
+            # real feature and real img
+            d_loss_real = discriminator.train_on_batch([real_features,real_imgs],[np.ones((half_batch,1)),real_features])
+            # fake feature and fake img
+            d_loss_fake = discriminator.train_on_batch([gen_features,gen_imgs],[np.zeros((quarter_batch,1)),gen_features])
+            # fake feature and real img
+            d_loss_half = discriminator.train_on_batch([gen_features,real_imgs[:quarter_batch]],
+                                                       [np.ones((quarter_batch,1)),real_features[:quarter_batch]])
+
+            d_loss = np.add(d_loss_real,np.add(d_loss_half,d_loss_fake) * 0.5) * 0.5
 
 
             # train Generator
-            noise = np.random.normal(0,1,(batchs,input_dim))
-            g_loss = gan.train_on_batch(noise,np.ones((batchs,1)))
+            noise = np.random.normal(0,1,(batchs,noise_dim))
+            gen_features = features[np.random.randint(0,imgs.shape[0],batchs)]# np.random.normal(0,1,(batchs,feature_dim))
+            g_loss = gan.train_on_batch([noise,gen_features],[np.ones((batchs,1)),gen_features])
 
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (i, d_loss[0], 100*d_loss[1], g_loss))
+            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (i, d_loss[0], 100*d_loss[1], g_loss[0]))
 
-            if get_config("env") == "CPU":
-                return
-
-            if i % 100 == 0:
-                save_result(i,generator)
+            if i % 10 == 0 and get_config("env") == "GPU":
+                save_result(i,generator,gen_features[0:1,:feature_dim])
 
     # save models
 
