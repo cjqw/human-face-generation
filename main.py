@@ -52,13 +52,13 @@ def save_result(epoch,generator,feature):
         for j in range(c):
             figure[i*shape[0]:i*shape[0]+shape[0],j*shape[1]:j*shape[1]+shape[1],:] = gen_imgs[i*r+j]
 
-    path = "img/epoch_%d" % epoch
-    save_img(path,figure)
-    # save_np_array(path,figure)
-
+    img_path = "img/epoch_%d" % epoch
+    model_path = "model/epoch_%d" % epoch
+    save_img(img_path,figure)
+    save_model(model_path,generator)
 
 def train_model():
-    data_path = get_config("data-path")
+    data_path = get_config("data-file")
     batchs = get_config("batchs")
     half_batch = batchs // 2
     quarter_batch = half_batch // 2
@@ -103,13 +103,25 @@ def train_model():
 
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (i, d_loss[0], 100*d_loss[1], g_loss[0]))
 
-            if i % 10 == 0 and get_config("env") == "GPU":
+            if i % 5 == 0 and get_config("env") == "GPU":
                 save_result(i,generator,gen_features[0:1,:feature_dim])
 
     # save models
 
 def generate():
-    pass
+    generator = get_model(get_config("model-file"))
+    feature = read_feature(get_config("feature-file"))
+
+    feature_dim = get_config("feature-dim") or 40
+    noise_dim = get_config("noise-dim") or 10
+    input_dim = feature_dim + noise_dim
+
+    noise = np.random.normal(0,1,(1,noise_dim))
+    feature = set_feature(feature,np.random.normal(0.5,0.5,feature_dim))
+
+    img = generator.predict([noise,feature])
+    save_img("./result",img)
+
 
 if (get_config("train")):
     train_model()

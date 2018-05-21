@@ -1,9 +1,16 @@
 import cv2
 import numpy as np
-from config import get_config
+from config import get_config,feature_map
+from keras.models import load_model
 
-def save_img(title,img):
-    cv2.imwrite(title+".jpg",img * 255)
+def save_img(path,img):
+    cv2.imwrite(path+".jpg",img * 255)
+
+def save_model(path,model):
+    model.save(path+".h5")
+
+def get_model(path):
+    return load_model(path)
 
 def show_img(img):
     cv2.imshow(title,img)
@@ -25,3 +32,13 @@ def convert_to_img(img):
         for j in range(shape[1]):
             img[i][j] = img[i][j][::-1]
     return img
+
+def read_feature(file_path):
+    with open(file_path,"r") as fin:
+        feature = fin.read()
+    return list(map(lambda x: x.strip(),feature.split(" ")))
+
+def set_feature(desc,feature):
+    for word in desc:
+        feature[feature_map[word] - 1] = 1
+    return feature
