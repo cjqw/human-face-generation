@@ -1,5 +1,5 @@
 config = {"data-file":"./data/celeba_64.hdf5",
-          "model-file":"./model/epoch_30.h5",
+          "model-file":"./model/epoch_10.h5",
           "feature-file":"./feature.txt",
           "model-path":"./model/",
           "epochs":500,

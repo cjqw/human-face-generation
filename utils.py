@@ -42,3 +42,9 @@ def set_feature(desc,feature):
     for word in desc:
         feature[feature_map[word] - 1] = 1
     return feature
+
+def show_feature(feature):
+    print("Features:")
+    for key in feature_map:
+        if feature[0][feature_map[key]-1] == 1:
+            print(key)

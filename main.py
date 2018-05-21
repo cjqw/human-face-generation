@@ -25,15 +25,6 @@ if get_config("env") == "GPU":
     sess = tf.Session(config=config)
     set_session(sess)
 
-
-def convert_rgb_img(img):
-    shape = img[0].shape
-    x = np.zeros((shape[0],shape[1],3))
-    x[:,:,0] = img[2,:,:]
-    x[:,:,1] = img[1,:,:]
-    x[:,:,2] = img[0,:,:]
-    return x
-
 def save_result(epoch,generator,feature):
     feature_dim = get_config("feature-dim") or 40
     noise_dim = get_config("noise-dim") or 10
@@ -110,18 +101,28 @@ def train_model():
 
 def generate():
     generator = get_model(get_config("model-file"))
-    feature = read_feature(get_config("feature-file"))
-
+    attribute = read_feature(get_config("feature-file"))
+    shape = get_config("img-shape")
     feature_dim = get_config("feature-dim") or 40
     noise_dim = get_config("noise-dim") or 10
     input_dim = feature_dim + noise_dim
+    r,c = 5,5
 
-    noise = np.random.normal(0,1,(1,noise_dim))
-    feature = set_feature(feature,np.random.normal(0.5,0.5,feature_dim))
+    noise = np.random.normal(0,1,(r*c,noise_dim))
+    # feature = np.array([set_feature(feature,np.random.choice(2,size=feature_dim,p=[0.9,0.1]))])
+    # show_feature(feature)
+    # feature = np.repeat(feature,r*c,axis=0)
+    feature = np.random.choice(2,size=(r*c,feature_dim),p=[0.9,0.1])
+    feature = np.array([set_feature(attribute,x) for x in feature])
+    imgs = generator.predict([noise,feature])
+    imgs = [convert_to_img(img) for img in imgs]
 
-    img = generator.predict([noise,feature])
-    save_img("./result",img)
+    figure = np.zeros(shape * np.array([5,5,1]))
+    for i in range(r):
+        for j in range(c):
+            figure[i*shape[0]:i*shape[0]+shape[0],j*shape[1]:j*shape[1]+shape[1],:] = imgs[i*r+j]
 
+    save_img("result",figure)
 
 if (get_config("train")):
     train_model()
