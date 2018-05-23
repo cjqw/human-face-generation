@@ -77,11 +77,11 @@ def train_model():
             gen_imgs = generator.predict([noise,gen_features])
 
             # real feature and real img
-            d_loss_real = discriminator.train_on_batch([real_features,real_imgs],[np.ones((half_batch,1)),real_features])
+            d_loss_real = discriminator.train_on_batch([real_imgs],[np.ones((half_batch,1)),real_features])
             # fake feature and fake img
-            d_loss_fake = discriminator.train_on_batch([gen_features,gen_imgs],[np.zeros((quarter_batch,1)),gen_features])
+            d_loss_fake = discriminator.train_on_batch([gen_imgs],[np.zeros((quarter_batch,1)),gen_features])
             # fake feature and real img
-            d_loss_half = discriminator.train_on_batch([gen_features,real_imgs[:quarter_batch]],
+            d_loss_half = discriminator.train_on_batch([real_imgs[:quarter_batch]],
                                                        [np.ones((quarter_batch,1)),real_features[:quarter_batch]])
 
             d_loss = np.add(d_loss_real,np.add(d_loss_half,d_loss_fake) * 0.5) * 0.5
@@ -109,9 +109,6 @@ def generate():
     r,c = 5,5
 
     noise = np.random.normal(0,1,(r*c,noise_dim))
-    # feature = np.array([set_feature(feature,np.random.choice(2,size=feature_dim,p=[0.9,0.1]))])
-    # show_feature(feature)
-    # feature = np.repeat(feature,r*c,axis=0)
     feature = np.random.choice(2,size=(r*c,feature_dim),p=[0.9,0.1])
     feature = np.array([set_feature(attribute,x) for x in feature])
     imgs = generator.predict([noise,feature])

@@ -1,5 +1,3 @@
-# https://github.com/eriklindernoren/Keras-GAN/blob/master/cyclegan/cyclegan.py
-
 from config import get_config
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import Dot,Concatenate
@@ -19,18 +17,18 @@ def build_generator():
     model = Sequential()
     model.add(Dense(128*16*16,activation="relu",input_shape=(input_dim,)))
     model.add(Reshape((16,16,128)))
-    model.add(BatchNormalization(momentum=0.8))
 
+    model.add(BatchNormalization(momentum=0.8))
     model.add(UpSampling2D())
     model.add(Conv2D(128, kernel_size=3, padding="same"))
     model.add(Activation("relu"))
-    model.add(BatchNormalization(momentum=0.8))
 
+    model.add(BatchNormalization(momentum=0.8))
     model.add(UpSampling2D())
     model.add(Conv2D(64, kernel_size=3, padding="same"))
     model.add(Activation("relu"))
-    model.add(BatchNormalization(momentum=0.8))
 
+    model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(3, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
     model.summary()
@@ -82,10 +80,9 @@ def build_discriminator():
 
     validity = Dense(1,activation='sigmoid')(model)
 
-    feature_i = Input(shape=(feature_dim,))
-    feature_p = Dense(feature_dim,activation='sigmoid')(model)
+    feature = Dense(feature_dim,activation='sigmoid')(model)
 
-    return Model([feature_i,img],[validity,feature_p])
+    return Model([img],[validity,feature])
 
 def build_net(input_dim):
     feature_dim = get_config("feature-dim") or 40
@@ -105,7 +102,7 @@ def build_net(input_dim):
 
     img = generator([noise,feature])
     discriminator.trainable = False
-    gan_output = discriminator([feature,img])
+    gan_output = discriminator(img)
     gan = Model([noise,feature],gan_output)
     gan.compile(loss=['binary_crossentropy',
                       'binary_crossentropy'],
