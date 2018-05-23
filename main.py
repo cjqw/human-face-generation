@@ -72,24 +72,21 @@ def train_model():
             real_imgs = imgs[idx]
             real_features = features[idx]
 
-            gen_features = features[idx[:quarter_batch]]# np.random.normal(0,1,(batchs,feature_dim))
-            noise = np.random.normal(0,1,(quarter_batch,noise_dim))
+            gen_features = features[idx]# np.random.normal(0,1,(batchs,feature_dim))
+            noise = np.random.normal(0,1,(half_batch,noise_dim))
             gen_imgs = generator.predict([noise,gen_features])
 
             # real feature and real img
             d_loss_real = discriminator.train_on_batch([real_imgs],[np.ones((half_batch,1)),real_features])
             # fake feature and fake img
-            d_loss_fake = discriminator.train_on_batch([gen_imgs],[np.zeros((quarter_batch,1)),gen_features])
-            # fake feature and real img
-            d_loss_half = discriminator.train_on_batch([real_imgs[:quarter_batch]],
-                                                       [np.ones((quarter_batch,1)),real_features[:quarter_batch]])
+            d_loss_fake = discriminator.train_on_batch([gen_imgs],[np.zeros((half_batch,1)),gen_features])
 
-            d_loss = np.add(d_loss_real,np.add(d_loss_half,d_loss_fake) * 0.5) * 0.5
+            d_loss = np.add(d_loss_real,d_loss_fake) * 0.5
 
 
             # train Generator
             noise = np.random.normal(0,1,(batchs,noise_dim))
-            gen_features = features[np.random.randint(0,imgs.shape[0],batchs)]# np.random.normal(0,1,(batchs,feature_dim))
+            gen_features = features[np.random.randint(0,imgs.shape[0],batchs)]
             g_loss = gan.train_on_batch([noise,gen_features],[np.ones((batchs,1)),gen_features])
 
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (i, d_loss[0], 100*d_loss[1], g_loss[0]))
