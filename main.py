@@ -83,7 +83,6 @@ def train_model():
 
             d_loss = np.add(d_loss_real,d_loss_fake) * 0.5
 
-
             # train Generator
             noise = np.random.normal(0,1,(batchs,noise_dim))
             gen_features = features[np.random.randint(0,imgs.shape[0],batchs)]
@@ -91,7 +90,7 @@ def train_model():
 
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (i, d_loss[0], 100*d_loss[1], g_loss[0]))
 
-            if i % 5 == 0 and get_config("env") == "GPU":
+            if i % 10 == 0 and get_config("env") == "GPU":
                 save_result(i,generator,gen_features[0:1,:feature_dim])
 
     # save models
