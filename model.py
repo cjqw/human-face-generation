@@ -62,7 +62,7 @@ def build_discriminator():
     model.add(Dropout(0.25))
 
     model.add(BatchNormalization(momentum=0.8))
-    model.add(Conv2D(32, kernel_size=3, strides=1, input_shape=img_shape, padding="same"))
+    model.add(Conv2D(32, kernel_size=3, strides=1, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 

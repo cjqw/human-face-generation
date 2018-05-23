@@ -88,7 +88,7 @@ def train_model():
             gen_features = features[np.random.randint(0,imgs.shape[0],batchs)]
             g_loss = gan.train_on_batch([noise,gen_features],[np.ones((batchs,1)),gen_features])
 
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (i, d_loss[0], 100*d_loss[1], g_loss[0]))
+            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f] %f%%" % (i, d_loss[0], 100*d_loss[1], g_loss[0], j*100/n_batchs))
 
             if i % 10 == 0 and get_config("env") == "GPU":
                 save_result(i,generator,gen_features[0:1,:feature_dim])
