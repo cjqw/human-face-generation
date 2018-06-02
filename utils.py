@@ -4,7 +4,7 @@ from config import get_config,feature_map
 from keras.models import load_model
 
 def save_img(path,img):
-    cv2.imwrite(path+".jpg",img * 255)
+    cv2.imwrite(path+".jpg",img)
 
 def save_model(path,model):
     model.save(path+".h5")
@@ -31,7 +31,7 @@ def convert_to_img(img):
     for i in range(shape[0]):
         for j in range(shape[1]):
             img[i][j] = img[i][j][::-1]
-    return img
+    return np.maximum(img,0) * 255
 
 def read_feature(file_path):
     with open(file_path,"r") as fin:
@@ -46,5 +46,45 @@ def set_feature(desc,feature):
 def show_feature(feature):
     print("Features:")
     for key in feature_map:
-        if feature[0][feature_map[key]-1] == 1:
+        if feature[feature_map[key]-1] == 1:
             print(key)
+
+def get_features(f):
+    l = f.shape[0]
+    result =np.zeros(f.shape)
+    result[:l//2] = f[:l//2]
+    for i in range(l//2):
+        result[i+l//2] = interpolate(f[i],f[l-i-1])
+    return result
+
+def interpolate(x,y):
+    l = np.random.rand()
+    return x*l + y*(1-l)
+
+def fill_figure(r,c,shape,imgs):
+    figure = np.zeros(shape * np.array([r,c,1]))
+    for i in range(r):
+        for j in range(c):
+            figure[i*shape[0]:i*shape[0]+shape[0],j*shape[1]:j*shape[1]+shape[1],:] = imgs[i*r+j]
+    return figure
+
+def get_noise(l):
+    return np.random.normal(0,1,(l,get_config("noise-dim")))
+
+def get_same_noise(l):
+    return np.repeat(np.random.normal(0,1,(1,get_config("noise-dim"))),l,axis=0)
+
+def satisfied(f,desc):
+    for d in desc:
+        if d[0] == '-':
+            if f[feature_map[d[1:]] - 1] > 0.5: return False
+        else:
+            if f[feature_map[d] - 1] < 0.5: return False
+
+    return True
+
+def choose_feature(fs,desc):
+    for i in fs:
+        if satisfied(i,desc):
+            return i
+    return fs[0]

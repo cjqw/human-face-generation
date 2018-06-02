@@ -1,15 +1,15 @@
-config = {"data-file":"./data/celeba_64.hdf5",
-          "model-file":"./model/epoch_250.h5",
+config = {"data-file":"/home/qw/.fueldata/celeba_64.hdf5",
+          "model-file":"./model/epoch_90.h5",
           "feature-file":"./feature.txt",
           "model-path":"./model/",
           "epochs":501,
           "batchs":128,
-          "train-datasets":1000,
+          "train-datasets":100000,
           "img-shape":(64,64,3),
           "feature-dim": 40,
           "noise-dim": 40,
           "train":False,
-          "GPU-number":"1",
+          "GPU-number":"2",
           "env":"GPU"}
 
 def get_config(para,default = None):
@@ -59,3 +59,4 @@ feature_map = {"5_o_Clock_":1,
                "Wearing_Necklace":38 ,
                "Wearing_Necktie":39 ,
                "Young":40}
+# Arched_Eyebrows Attractive Bags_Under_Eyes Bald Bangs Big_Lips Big_Nose Black_Hair Blond_Hair Blurry Brown_Hair Bushy_Eyebrows Chubby Double_Chin Eyeglasses Goatee Gray_Hair Heavy_Makeup High_Cheekbones Male Mouth_Slightly_Open Mustache Narrow_Eyes No_Beard Oval_Face Pale_Skin Pointy_Nose Receding_Hairline Rosy_Cheeks Sideburns Smiling Straight_Hair Wavy_Hair Wearing_Earrings Wearing_Hat Wearing_Lipstick Wearing_Necklace Wearing_Necktie Young 5_o_Clock_

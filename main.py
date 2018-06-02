@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from fuel.datasets.hdf5 import H5PYDataset
-from config import get_config
+from config import get_config,feature_map
 from model import build_net
 from keras.models import Model
 from keras.layers import Input
@@ -11,6 +11,7 @@ import keras
 import numpy as np
 
 from utils import *
+# from score import get_inception_score
 
 if get_config("env") == "GPU":
     # tensorflow setting
@@ -72,7 +73,7 @@ def train_model():
             real_imgs = imgs[idx]
             real_features = features[idx]
 
-            gen_features = features[idx]# np.random.normal(0,1,(batchs,feature_dim))
+            gen_features = get_features(features)[np.random.randint(0,imgs.shape[0],half_batch)]
             noise = np.random.normal(0,1,(half_batch,noise_dim))
             gen_imgs = generator.predict([noise,gen_features])
 
@@ -85,7 +86,7 @@ def train_model():
 
             # train Generator
             noise = np.random.normal(0,1,(batchs,noise_dim))
-            gen_features = features[np.random.randint(0,imgs.shape[0],batchs)]
+            gen_features = get_features(features)
             g_loss = gan.train_on_batch([noise,gen_features],[np.ones((batchs,1)),gen_features])
 
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f] %f%%" % (i, d_loss[0], 100*d_loss[1], g_loss[0], j*100/n_batchs))
@@ -97,25 +98,37 @@ def train_model():
 
 def generate():
     generator = get_model(get_config("model-file"))
-    attribute = read_feature(get_config("feature-file"))
+    data_path = get_config("data-file")
     shape = get_config("img-shape")
     feature_dim = get_config("feature-dim") or 40
-    noise_dim = get_config("noise-dim") or 10
-    input_dim = feature_dim + noise_dim
-    r,c = 5,5
+    attribute = read_feature(get_config("feature-file"))
+    r,c = 1,10
 
-    noise = np.random.normal(0,1,(r*c,noise_dim))
-    feature = np.random.choice(2,size=(r*c,feature_dim),p=[0.9,0.1])
-    feature = np.array([set_feature(attribute,x) for x in feature])
+    train_set = H5PYDataset(data_path,which_sets=('train',))
+    handle = train_set.open()
+    _ ,real_features = train_set.get_data(handle,slice(0,10000))
+
+    feature = choose_feature(real_features,["Male"])
+    feature = np.array(np.repeat([feature],r*c,axis=0),dtype='float64')
+    key = feature_map["Smiling"]
+    for i in range(10):
+        feature[i][key-1] = 0.1 * i
+
+    show_feature(feature[0])
+
+    noise = get_same_noise(r*c)
+
     imgs = generator.predict([noise,feature])
     imgs = [convert_to_img(img) for img in imgs]
 
-    figure = np.zeros(shape * np.array([5,5,1]))
-    for i in range(r):
-        for j in range(c):
-            figure[i*shape[0]:i*shape[0]+shape[0],j*shape[1]:j*shape[1]+shape[1],:] = imgs[i*r+j]
+    glass_count = sum(real_features[:][15])
+    print("Eyeglasses: %.4f%%"%(glass_count*100/len(real_features)))
 
+
+    figure = fill_figure(r,c,shape,imgs)
     save_img("result",figure)
+
+    # print(get_inception_score(imgs))
 
 if (get_config("train")):
     train_model()
