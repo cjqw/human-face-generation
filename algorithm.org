@@ -8,23 +8,23 @@ number of features grows,the CGAN architechture will become more and
 more slow.So I choosed ACGAN to deal with attribute-driven image generation problem.
 * Generator
 [[file:img/generator.jpg]]
-| Layer    | Kernel Size | Strides | BN?   | Dropout   | Padding | Activation |
-| Conv2D_1 |           3 | (1,1)   | \surd | \setminus | same    | ReLU       |
-| Conv2D_2 |           3 | (1,1)   | \surd | \setminus | same    | ReLU       |
-| Conv2D_3 |           3 | (1,1)   | \surd | \setminus | same    | ReLU       |
-| COnv2D-4 |           3 | (1,1)   | \surd | \setminus | same    | ranh       |
+| Layer    | Kernel Size | Strides | BN? | Dropout | Padding | Activation |
+| Conv2D_1 |           3 | (1,1)   | yes | no      | same    | ReLU       |
+| Conv2D_2 |           3 | (1,1)   | yes | no      | same    | ReLU       |
+| Conv2D_3 |           3 | (1,1)   | yes | no      | same    | ReLU       |
+| COnv2D-4 |           3 | (1,1)   | yes | no      | same    | ranh       |
 
 I choose upsampling + convolution as deconvolution method to avoid
 [[https://distill.pub/2016/deconv-checkerboard/][Checkerboard Artifacts]].
 * Discriminator
 [[file:img/discriminator.jpg]]
-| Layer    | Kernel Size | Strides | BN?       | Dropout | Padding | Activation |
-| Conv2D_1 |           3 | (2,2)   | \setminus |    0.25 | same    | LeakyReLU  |
-| Conv2D_2 |           3 | (1,1)   | \surd     |    0.25 | same    | LeakyReLU  |
-| Conv2D_3 |           3 | (2,2)   | \surd     |    0.25 | same    | LeakyReLU  |
-| Conv2D_4 |           3 | (1,1)   | \surd     |    0.25 | same    | LeakyReLU  |
-| Conv2D_5 |           3 | (2,2)   | \surd     |    0.25 | same    | LeakyReLU  |
-| Conv2D_6 |           3 | (1,1)   | \surd     |    0.25 | same    | LeakyReLU  |
+| Layer    | Kernel Size | Strides | BN? | Dropout | Padding | Activation |
+| Conv2D_1 |           3 | (2,2)   | no  |    0.25 | same    | LeakyReLU  |
+| Conv2D_2 |           3 | (1,1)   | yes |    0.25 | same    | LeakyReLU  |
+| Conv2D_3 |           3 | (2,2)   | yes |    0.25 | same    | LeakyReLU  |
+| Conv2D_4 |           3 | (1,1)   | yes |    0.25 | same    | LeakyReLU  |
+| Conv2D_5 |           3 | (2,2)   | yes |    0.25 | same    | LeakyReLU  |
+| Conv2D_6 |           3 | (1,1)   | yes |    0.25 | same    | LeakyReLU  |
 * Training
 The training is similar with ACGAN's training.I use the interpolation trick
 in CGAN's training: To get a random feature in feature's distribution,
