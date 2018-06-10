@@ -33,16 +33,20 @@ Let us see the difference:
 [[file:img/Smiling.jpg]]
 
 Smiling
+
 [[file:img/Pale_Skin.jpg]]
 
 
 Pale_Skin
+
 [[file:img/Bangs.jpg]]
 
 Bangs
+
 [[file:img/Big_Lips.jpg]]
 
 Big_Lips
+
 [[file:img/Black_Hair.jpg]]
 
 Black_Hair
@@ -61,4 +65,4 @@ Those abstract features are more complex and difficult to learn.
 Eyeglasses
 
 The generator seems to think eyeglasses are black circles around the eyes:(
-I think the reason is samples with this label are too rare in celeba dataset.
+  I think the reason is samples with this label are too rare in celeba dataset.
