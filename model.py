@@ -45,7 +45,6 @@ def build_generator():
 
     return Model([noise,feature], img)
 
-
 def build_discriminator():
     img_shape = get_config("img-shape") or (64,64,3)
     feature_dim = get_config("feature-dim") or 40
@@ -88,6 +87,7 @@ def build_discriminator():
 
     model.add(Flatten())
     model.summary()
+
 
     img = Input(shape=img_shape)
     model = model(img)

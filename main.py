@@ -20,6 +20,8 @@ if get_config("env") == "GPU":
     import os
 
     os.environ['CUDA_VISIBLE_DEVICES'] = get_config("GPU-number")
+    os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.5
     config.gpu_options.allow_growth = True
@@ -81,7 +83,6 @@ def train_model():
             d_loss_real = discriminator.train_on_batch([real_imgs],[np.ones((half_batch,1)),real_features])
             # fake feature and fake img
             d_loss_fake = discriminator.train_on_batch([gen_imgs],[np.zeros((half_batch,1)),gen_features])
-
             d_loss = np.add(d_loss_real,d_loss_fake) * 0.5
 
             # train Generator
