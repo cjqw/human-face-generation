@@ -1,5 +1,5 @@
 * Attribute-based human face generation
-[[file:img/result.jpg]]
+[[file:img/attr1.jpg]]
 * Introduction
 This project is my diploma work,realizing attribute-based human face generation using GANs.
 

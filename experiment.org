@@ -10,10 +10,12 @@ human face images with rich diversity. However, some complex features or rare fe
 These are some examples of experiment1:
 
 [[file:img/attr1.jpg]]
-labels: Brown_Hair, Pointy_Nose, Straight_Hair, Wearing_Earrings, Smiling, Attractive, No_Beard, Young,
+
+labels: Brown_Hair,Pointy_Nose,Straight_Hair,Wearing_Earrings,Smiling,Attractive,No_Beard,Young,
 Mouth_Slightly_Open,Heavy_Makeup,High_Cheekbones,Arched_Eyebrows,Wearing_Lipstick.
 
 [[file:img/attr2.jpg]]
+
 labels:High_Cheekbones,Attractive,Young,Male,Bushy_Eyebrows,Smiling,Black_Hair,
 Oval_Face,No_Beard,Mouth_Slightly_Open,Bags_Under_Eyes,Straight_Hair.
 
