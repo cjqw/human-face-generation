@@ -16,10 +16,12 @@ Reed el.\cite{reed} to get more feature vector for the generator.This method can
 
 * Usage
 ** To sample
+#+BEGIN_SRC
 > $ git clone git@github.com:cjqw/human-face-generation.git
 > $ python3 main.py
+#+END_SRC
 ** To train
-Now you have to modify the python file:config.py to train the model.First set config["train"]=True
+Now you have to modify the python [[file:config.py]] to train the model.First set config["train"]=True
 and set the data path.Other hyperparemeters also can be changed.
 I will realize more advanced interaction method as soon as possible.
 * Others
