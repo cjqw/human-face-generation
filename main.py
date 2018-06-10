@@ -102,28 +102,24 @@ def generate():
     shape = get_config("img-shape")
     feature_dim = get_config("feature-dim") or 40
     attribute = read_feature(get_config("feature-file"))
-    r,c = 1,10
+    r,c = 5,5
 
     train_set = H5PYDataset(data_path,which_sets=('train',))
     handle = train_set.open()
-    _ ,real_features = train_set.get_data(handle,slice(0,10000))
+    _ ,real_features = train_set.get_data(handle,slice(0,50000))
 
-    feature = choose_feature(real_features,["Male"])
+    with open("feature.txt","r") as fin:
+        feature = fin.readline().strip().split(",")
+    feature = choose_feature(real_features,feature)
     feature = np.array(np.repeat([feature],r*c,axis=0),dtype='float64')
-    key = feature_map["Smiling"]
-    for i in range(10):
-        feature[i][key-1] = 0.1 * i
+    # key = feature_map["Young"]
+    # for i in range(10):
+    #     feature[i][key-1] = 0.1 * i
 
     show_feature(feature[0])
-
-    noise = get_same_noise(r*c)
-
+    noise = get_noise(r*c)
     imgs = generator.predict([noise,feature])
     imgs = [convert_to_img(img) for img in imgs]
-
-    glass_count = sum(real_features[:][15])
-    print("Eyeglasses: %.4f%%"%(glass_count*100/len(real_features)))
-
 
     figure = fill_figure(r,c,shape,imgs)
     save_img("result",figure)

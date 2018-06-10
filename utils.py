@@ -50,6 +50,7 @@ def show_feature(feature):
             print(key)
 
 def get_features(f):
+    return f
     l = f.shape[0]
     result =np.zeros(f.shape)
     result[:l//2] = f[:l//2]
@@ -84,7 +85,11 @@ def satisfied(f,desc):
     return True
 
 def choose_feature(fs,desc):
+    f = []
     for i in fs:
         if satisfied(i,desc):
-            return i
-    return fs[0]
+            f.append(i)
+    if len(f) == 0:
+        return fs[0]
+    else:
+        return f[np.random.randint(len(f))-1]

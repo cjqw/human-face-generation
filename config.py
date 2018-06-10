@@ -1,4 +1,4 @@
-config = {"data-file":"/home/qw/.fueldata/celeba_64.hdf5",
+config = {"data-file":"./data/celeba_64.hdf5",
           "model-file":"./model/epoch_90.h5",
           "feature-file":"./feature.txt",
           "model-path":"./model/",
