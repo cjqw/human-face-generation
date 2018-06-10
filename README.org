@@ -1,5 +1,5 @@
 * Attribute-based human face generation
-file:img/result.jpg
+[[file:img/result.jpg]]
 * Introduction
 This project is my diploma work,realizing attribute-based human face generation using GANs.
 
@@ -25,6 +25,6 @@ Now you have to modify the python [[file:config.py]] to train the model.First se
 and set the data path.Other hyperparemeters also can be changed.
 I will realize more advanced interaction method as soon as possible.
 * Others
-- about the algorithm: file:algorithm.org
-- about the experiments: file:experiment.org
-- References: file:reference.bib
+- about the algorithm: [[file:algorithm.org]]
+- about the experiments: [[file:experiment.org]]
+- References: [[file:reference.bib]]
