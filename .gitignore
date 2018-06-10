@@ -5,3 +5,6 @@ __pycache__/
 *.jpg
 /model/*
 *.h5
+/data/celeba_64.hdf5
+/score.py
+/feature.txt
