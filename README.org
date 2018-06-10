@@ -1,0 +1,28 @@
+* Attribute-based human face generation
+file:img/result.jpg
+* Introduction
+This project is my diploma work,realizing attribute-based human face generation using GANs.
+
+In order to train an attribute-driven generative model, I used a method inspired by auxiliary classifier generative adversarial
+networks. By using ACGAN, the whole network can be trained with labeled human face images.
+Compared with classic conditional generative adversarial network, this model will not get stuck when the number of
+different labels increases because of the individual feature prediction.
+
+There are some other tricks to improve the generative model.
+At first,instead of transposed concolutional layer,I used upsampling layer and convolutional layer in turns
+in the generator to avoid checkerboard pattern of artifacts. Secondly, I used interpolation trick inspired by
+Reed el.\cite{reed} to get more feature vector for the generator.This method can help avoid model collapse.
+
+
+* Usage
+** To sample
+> $ git clone git@github.com:cjqw/human-face-generation.git
+> $ python3 main.py
+** To train
+Now you have to modify the python file:config.py to train the model.First set config["train"]=True
+and set the data path.Other hyperparemeters also can be changed.
+I will realize more advanced interaction method as soon as possible.
+* Others
+- about the algorithm: file:algorithm.org
+- about the experiments: file:experiment.org
+- References: file:reference.bib

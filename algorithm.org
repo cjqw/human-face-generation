@@ -1,0 +1,33 @@
+* ACGAN with labels
+file:img/acgan.jpg
+
+CGAN is widely used as an attribute driven GANs architechture.However,
+the constrains to the generator is too strong that the discriminator
+can get high accuracy by learning just one or two features.With the
+number of features grows,the CGAN architechture will become more and
+more slow.So I choosed ACGAN to deal with attribute-driven image generation problem.
+* Generator
+file:img/generator.jpg
+| Layer    | Kernel Size | Strides | BN?   | Dropout   | Padding | Activation |
+| Conv2D_1 |           3 | (1,1)   | \surd | \setminus | same    | ReLU       |
+| Conv2D_2 |           3 | (1,1)   | \surd | \setminus | same    | ReLU       |
+| Conv2D_3 |           3 | (1,1)   | \surd | \setminus | same    | ReLU       |
+| COnv2D-4 |           3 | (1,1)   | \surd | \setminus | same    | ranh       |
+
+I choose upsampling + convolution as deconvolution method to avoid
+[[https://distill.pub/2016/deconv-checkerboard/][Checkerboard Artifacts]].
+* Discriminator
+file:img/discriminator.jpg
+| Layer    | Kernel Size | Strides | BN?       | Dropout | Padding | Activation |
+| Conv2D_1 |           3 | (2,2)   | \setminus |    0.25 | same    | LeakyReLU  |
+| Conv2D_2 |           3 | (1,1)   | \surd     |    0.25 | same    | LeakyReLU  |
+| Conv2D_3 |           3 | (2,2)   | \surd     |    0.25 | same    | LeakyReLU  |
+| Conv2D_4 |           3 | (1,1)   | \surd     |    0.25 | same    | LeakyReLU  |
+| Conv2D_5 |           3 | (2,2)   | \surd     |    0.25 | same    | LeakyReLU  |
+| Conv2D_6 |           3 | (1,1)   | \surd     |    0.25 | same    | LeakyReLU  |
+* Training
+The training is similar with ACGAN's training.I use the interpolation trick
+in CGAN's training: To get a random feature in feature's distribution,
+choose 2 random feature in the dataset and do an interpolation between
+them.This method can get more feature from feature's distribution and
+we don't need to train another generator on the features.

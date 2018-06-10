@@ -50,7 +50,6 @@ def show_feature(feature):
             print(key)
 
 def get_features(f):
-    return f
     l = f.shape[0]
     result =np.zeros(f.shape)
     result[:l//2] = f[:l//2]

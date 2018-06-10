@@ -1,8 +1,6 @@
 __pycache__/
 /#model.py#
 /#main.py#
-/img/a.py
-*.jpg
 /model/*
 *.h5
 /data/celeba_64.hdf5

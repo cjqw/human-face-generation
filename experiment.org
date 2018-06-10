@@ -1,0 +1,45 @@
+  I trained my model in CelebA dataset and analysed the result. By applying the same features and
+different noise to generator, I got various human faces with high quality. By applying the same noise and changing
+one dimention of the features gradually, I studied how the generator learns about different features. As a result, the generator
+can learn more about obvious feature such as Pale\_Skin and Smiling. When things come to abstract features such as
+Young and Attrctive,the generator does not work well. Also,for features with little sample in the dataset such as Eyeglasses
+and Earrings,it is a disaster to force the generator to learn about them. As a result, this model can generate high qulity
+human face images with rich diversity. However, some complex features or rare features are hard to learn by this model.
+
+* Experiment1
+These are some examples of experiment1:
+
+file:img/attr1.jpg
+labels: Brown_Hair, Pointy_Nose, Straight_Hair, Wearing_Earrings, Smiling, Attractive, No_Beard, Young,
+Mouth_Slightly_Open,Heavy_Makeup,High_Cheekbones,Arched_Eyebrows,Wearing_Lipstick.
+
+file:img/attr2.jpg
+labels:High_Cheekbones,Attractive,Young,Male,Bushy_Eyebrows,Smiling,Black_Hair,
+Oval_Face,No_Beard,Mouth_Slightly_Open,Bags_Under_Eyes,Straight_Hair.
+
+As we can see, my model can generate high quality human face images and they can match
+most of the labels.The diversity of the generated faces is also good. We can find
+different faces even though the input labels are the same.
+
+However, there are still some strange faces and some of the labels are not learned very well.
+For example, the label Wearing_Earrings is not well treated.
+
+* Experiment2
+In this experiment,I apply the same noise and labels but change one of the labels gradually.
+Let us see the difference:
+
+file:img/Smiling.jpg
+file:img/Pale_Skin.jpg
+file:img/Bangs.jpg
+file:img/Big_Lips.jpg
+file:img/Black_Hair.jpg
+
+As we can see, the generator can learn simple features very well:)
+
+file:img/Attractive.jpg
+I'm not sure whether she is getting more and more attractive:(
+Those abstract features are more complex and difficult to learn.
+
+file:img/Eyeglasses.jpg
+The generator seems to think eyeglasses are black circles around the eyes:(
+I think the reason is samples with this label are too rare in celeba dataset.
