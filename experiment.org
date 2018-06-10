@@ -1,7 +1,7 @@
   I trained my model in CelebA dataset and analysed the result. By applying the same features and
 different noise to generator, I got various human faces with high quality. By applying the same noise and changing
 one dimention of the features gradually, I studied how the generator learns about different features. As a result, the generator
-can learn more about obvious feature such as Pale\_Skin and Smiling. When things come to abstract features such as
+can learn more about obvious feature such as Pale_Skin and Smiling. When things come to abstract features such as
 Young and Attrctive,the generator does not work well. Also,for features with little sample in the dataset such as Eyeglasses
 and Earrings,it is a disaster to force the generator to learn about them. As a result, this model can generate high qulity
 human face images with rich diversity. However, some complex features or rare features are hard to learn by this model.
@@ -31,25 +31,33 @@ In this experiment,I apply the same noise and labels but change one of the label
 Let us see the difference:
 
 [[file:img/Smiling.jpg]]
+
 Smiling
 [[file:img/Pale_Skin.jpg]]
+
+
 Pale_Skin
 [[file:img/Bangs.jpg]]
+
 Bangs
 [[file:img/Big_Lips.jpg]]
+
 Big_Lips
 [[file:img/Black_Hair.jpg]]
+
 Black_Hair
 
 As we can see, the generator can learn simple features very well:)
 
 [[file:img/Attractive.jpg]]
+
 Attractive
 
 I'm not sure whether she is getting more and more attractive:(
 Those abstract features are more complex and difficult to learn.
 
 [[file:img/Eyeglasses.jpg]]
+
 Eyeglasses
 
 The generator seems to think eyeglasses are black circles around the eyes:(
