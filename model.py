@@ -1,8 +1,6 @@
-# https://github.com/eriklindernoren/Keras-GAN/blob/master/cyclegan/cyclegan.py
-
 from config import get_config
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
-from keras.layers.merge import Concatenate
+from keras.layers import Dot,Concatenate
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D, MaxPooling2D
@@ -17,28 +15,35 @@ def build_generator():
     input_dim = feature_dim + noise_dim
 
     model = Sequential()
-    model.add(Dense(128*16*16,activation="relu",input_shape=(input_dim,)))
-    model.add(Reshape((16,16,128)))
-    model.add(BatchNormalization(momentum=0.8))
+    model.add(Dense(256*8*8,activation="relu",input_shape=(input_dim,)))
+    model.add(Reshape((8,8,256)))
 
+    model.add(BatchNormalization(momentum=0.8))
+    model.add(UpSampling2D())
+    model.add(Conv2D(256, kernel_size=3, padding="same"))
+    model.add(Activation("relu"))
+
+    model.add(BatchNormalization(momentum=0.8))
     model.add(UpSampling2D())
     model.add(Conv2D(128, kernel_size=3, padding="same"))
     model.add(Activation("relu"))
-    model.add(BatchNormalization(momentum=0.8))
 
+    model.add(BatchNormalization(momentum=0.8))
     model.add(UpSampling2D())
     model.add(Conv2D(64, kernel_size=3, padding="same"))
     model.add(Activation("relu"))
-    model.add(BatchNormalization(momentum=0.8))
 
+    model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(3, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
     model.summary()
 
-    noise = Input(shape=(input_dim,))
-    img = model(noise)
+    noise = Input(shape=(noise_dim,))
+    feature = Input(shape=(feature_dim,))
+    input_v = Concatenate()([noise,feature])
+    img = model(input_v)
 
-    return Model(noise, img)
+    return Model([noise,feature], img)
 
 def build_discriminator():
     img_shape = get_config("img-shape") or (64,64,3)
@@ -51,57 +56,69 @@ def build_discriminator():
 
     model = Sequential()
 
-    model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
+    model.add(Conv2D(16, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
-    model.add(MaxPooling2D(pool_size=(2,2)))
     model.add(Dropout(0.25))
 
+    model.add(BatchNormalization(momentum=0.8))
+    model.add(Conv2D(32, kernel_size=3, strides=1, padding="same"))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.25))
+
+    model.add(BatchNormalization(momentum=0.8))
     model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-    model.add(ZeroPadding2D(padding=((0,1),(0,1))))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(BatchNormalization(momentum=0.8))
-    model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
+    model.add(Conv2D(128, kernel_size=3, strides=1, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(BatchNormalization(momentum=0.8))
-    model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
+    model.add(Conv2D(256, kernel_size=3, strides=2, padding="same"))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.25))
+
+    model.add(BatchNormalization(momentum=0.8))
+    model.add(Conv2D(512, kernel_size=3, strides=1, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    # model.add(Dense(input_dim,activation='sigmoid'))
-    model.add(Dense(1,activation='sigmoid'))
-
     model.summary()
 
 
     img = Input(shape=img_shape)
-    feature_i = Input(shape=(input_dim,))
-    feature_p = Model(img, model(img))(img)
+    model = model(img)
 
-    discriminator = Concatenate()([feature_i,feature_p])
-    discriminator = Dense(1,activation='sigmoid')(discriminator)
+    validity = Dense(1,activation='sigmoid')(model)
 
-    # return Model([feature_i,img],discriminator)
+    feature = Dense(feature_dim,activation='sigmoid')(model)
 
-    return Model(img,model(img))
-
+    return Model([img],[validity,feature])
 
 def build_net(input_dim):
+    feature_dim = get_config("feature-dim") or 40
+    noise_dim = get_config("noise-dim") or 10
+    input_dim = feature_dim + noise_dim
+
     optimizer = Adam(0.0002, 0.5)
     generator = build_generator()
     discriminator = build_discriminator()
+    discriminator.compile(loss=['binary_crossentropy',
+                                'binary_crossentropy'],
+                          optimizer = optimizer,
+                          metrics = ['accuracy'])
 
-    gan_input = Input(shape=(input_dim,))
-    img = generator(gan_input)
-    # gan_output = discriminator([gan_input,img])
-    gan_output = discriminator(img)
+    noise = Input(shape=(noise_dim,))
+    feature = Input(shape=(feature_dim,))
+
+    img = generator([noise,feature])
     discriminator.trainable = False
-    discriminator.compile(loss='binary_crossentropy', optimizer = optimizer, metrics = ['accuracy'])
-
-    gan = Model(gan_input,gan_output)
-    gan.compile(loss='binary_crossentropy', optimizer=optimizer)
+    gan_output = discriminator(img)
+    gan = Model([noise,feature],gan_output)
+    gan.compile(loss=['binary_crossentropy',
+                      'binary_crossentropy'],
+                optimizer=optimizer)
     return generator,discriminator,gan
